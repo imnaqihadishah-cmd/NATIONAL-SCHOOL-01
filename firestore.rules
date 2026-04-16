@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: branches
+    // Fields: name (string), location (string), contact (string)
+    //
+    // Collection: students
+    // Fields: branchId (string), name (string), rollNumber (string), class (string), section (string), status (string)
+    //
+    // Collection: teachers
+    // Fields: branchId (string), name (string), employeeId (string), salary (number), status (string)
+    //
+    // Collection: fees
+    // Fields: studentId (string), branchId (string), month (string), year (number), amount (number), status (string)
+    //
+    // Collection: salaries
+    // Fields: teacherId (string), branchId (string), month (string), year (number), amount (number), status (string)
+    //
+    // Collection: attendance
+    // Fields: personId (string), type (string), branchId (string), date (string), status (string)
+    //
+    // Collection: expenses
+    // Fields: branchId (string), category (string), amount (number), date (string)
+    //
+    // Collection: exams
+    // Fields: branchId (string), title (string), date (string), class (string), subject (string)
+    //
+    // Collection: results
+    // Fields: examId (string), studentId (string), marksObtained (number), totalMarks (number)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "imnaqihadishah@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validString(field, maxLen) {
+      return request.resource.data[field] is string && request.resource.data[field].size() <= maxLen;
+    }
+
+    function validNumber(field) {
+      return request.resource.data[field] is number;
+    }
+
+    // Rules for all collections
+    match /{collectionName}/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create, update: if isAdmin();
+    }
+  }
+}

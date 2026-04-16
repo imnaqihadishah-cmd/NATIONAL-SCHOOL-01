@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "Branch": {
+      "title": "Branch",
+      "description": "A school branch location",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the branch" },
+        "location": { "type": "string", "description": "Address of the branch" },
+        "contact": { "type": "string", "description": "Contact number" }
+      },
+      "required": ["name"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record",
+      "type": "object",
+      "properties": {
+        "branchId": { "type": "string", "description": "ID of the branch" },
+        "name": { "type": "string", "description": "Full name" },
+        "rollNumber": { "type": "string" },
+        "class": { "type": "string" },
+        "section": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "contact": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "imageUrl": { "type": "string", "description": "Base64 encoded image or URL" }
+      },
+      "required": ["branchId", "name", "rollNumber", "class"]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Teacher record",
+      "type": "object",
+      "properties": {
+        "branchId": { "type": "string" },
+        "name": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "subject": { "type": "string" },
+        "qualification": { "type": "string" },
+        "contact": { "type": "string" },
+        "salary": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "imageUrl": { "type": "string", "description": "Base64 encoded image or URL" }
+      },
+      "required": ["branchId", "name", "employeeId", "salary"]
+    },
+    "Fee": {
+      "title": "Fee",
+      "description": "Student fee record",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "branchId": { "type": "string" },
+        "month": { "type": "string" },
+        "year": { "type": "number" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "unpaid"] },
+        "datePaid": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "branchId", "month", "year", "amount", "status"]
+    },
+    "SalaryPayment": {
+      "title": "SalaryPayment",
+      "description": "Teacher salary payment record",
+      "type": "object",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "branchId": { "type": "string" },
+        "month": { "type": "string" },
+        "year": { "type": "number" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "unpaid"] },
+        "datePaid": { "type": "string", "format": "date-time" }
+      },
+      "required": ["teacherId", "branchId", "month", "year", "amount", "status"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Attendance record for students or teachers",
+      "type": "object",
+      "properties": {
+        "personId": { "type": "string", "description": "ID of student or teacher" },
+        "type": { "type": "string", "enum": ["student", "teacher"] },
+        "branchId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"] }
+      },
+      "required": ["personId", "type", "branchId", "date", "status"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Branch expense record",
+      "type": "object",
+      "properties": {
+        "branchId": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date" }
+      },
+      "required": ["branchId", "category", "amount", "date"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Examination record",
+      "type": "object",
+      "properties": {
+        "branchId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "class": { "type": "string" },
+        "subject": { "type": "string" }
+      },
+      "required": ["branchId", "title", "date", "class", "subject"]
+    },
+    "Result": {
+      "title": "Result",
+      "description": "Exam result for a student",
+      "type": "object",
+      "properties": {
+        "examId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "marksObtained": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "grade": { "type": "string" }
+      },
+      "required": ["examId", "studentId", "marksObtained", "totalMarks"]
+    }
+  },
+  "firestore": {
+    "branches": { "schema": "Branch", "description": "List of school branches" },
+    "students": { "schema": "Student", "description": "Student records across all branches" },
+    "teachers": { "schema": "Teacher", "description": "Teacher records across all branches" },
+    "fees": { "schema": "Fee", "description": "Fee payment history" },
+    "salaries": { "schema": "SalaryPayment", "description": "Salary payment history" },
+    "attendance": { "schema": "Attendance", "description": "Attendance logs" },
+    "expenses": { "schema": "Expense", "description": "Branch expenses" },
+    "exams": { "schema": "Exam", "description": "Examination schedules" },
+    "results": { "schema": "Result", "description": "Exam results" }
+  }
+}
