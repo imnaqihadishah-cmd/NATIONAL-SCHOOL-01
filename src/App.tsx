@@ -81,8 +81,8 @@ import {
 } from './types';
 
 // Import images directly to ensure Vite bundles them correctly
-import logoImg from './assets/logo.png';
-import signatureImg from './assets/signature.png';
+
+
 
 // --- Error Boundary ---
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
@@ -144,7 +144,7 @@ const SidebarItem = ({ icon: Icon, label, to }: { icon: any, label: string, to: 
       className={cn(
         "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden",
         active 
-          ? "text-white shadow-lg shadow-blue-900/20 bg-gradient-to-r from-blue-600 to-blue-500" 
+          ? "text-slate-900 shadow-lg shadow-amber-500/20 bg-gradient-to-r from-amber-400 to-amber-500" 
           : "text-slate-400 hover:bg-white/5 hover:text-white"
       )}
     >
@@ -183,6 +183,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: { title: string, v
     'bg-amber-500': { bg: 'bg-amber-500', text: 'text-amber-600', lightBg: 'bg-amber-50', border: 'border-amber-100/50' },
     'bg-purple-600': { bg: 'bg-purple-600', text: 'text-purple-600', lightBg: 'bg-purple-50', border: 'border-purple-100/50' },
     'bg-rose-600': { bg: 'bg-rose-600', text: 'text-rose-600', lightBg: 'bg-rose-50', border: 'border-rose-100/50' },
+    'bg-slate-900': { bg: 'bg-slate-900', text: 'text-slate-900', lightBg: 'bg-slate-50', border: 'border-slate-200' },
   };
 
   const theme = colorMap[color] || colorMap['bg-blue-600'];
@@ -337,7 +338,6 @@ export default function App() {
 function AppContent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [branches, setBranches] = useState<Branch[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [fees, setFees] = useState<Fee[]>([]);
@@ -346,7 +346,6 @@ function AppContent() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [results, setResults] = useState<Result[]>([]);
-  const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -359,7 +358,6 @@ function AppContent() {
   useEffect(() => {
     if (!user) return;
 
-    const unsubBranches = onSnapshot(collection(db, 'branches'), (s) => setBranches(s.docs.map(d => ({ id: d.id, ...d.data() } as Branch))), (err) => handleFirestoreError(err, OperationType.GET, 'branches'));
     const unsubStudents = onSnapshot(collection(db, 'students'), (s) => setStudents(s.docs.map(d => ({ id: d.id, ...d.data() } as Student))), (err) => handleFirestoreError(err, OperationType.GET, 'students'));
     const unsubTeachers = onSnapshot(collection(db, 'teachers'), (s) => setTeachers(s.docs.map(d => ({ id: d.id, ...d.data() } as Teacher))), (err) => handleFirestoreError(err, OperationType.GET, 'teachers'));
     const unsubFees = onSnapshot(collection(db, 'fees'), (s) => setFees(s.docs.map(d => ({ id: d.id, ...d.data() } as Fee))), (err) => handleFirestoreError(err, OperationType.GET, 'fees'));
@@ -370,7 +368,6 @@ function AppContent() {
     const unsubResults = onSnapshot(collection(db, 'results'), (s) => setResults(s.docs.map(d => ({ id: d.id, ...d.data() } as Result))), (err) => handleFirestoreError(err, OperationType.GET, 'results'));
 
     return () => {
-      unsubBranches();
       unsubStudents();
       unsubTeachers();
       unsubFees();
@@ -393,10 +390,18 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-600 font-medium animate-pulse">Loading National Model School...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="flex flex-col items-center gap-8">
+          <div className="w-32 h-32 bg-white rounded-full p-2 shadow-2xl border-4 border-amber-400 animate-pulse">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <div className="text-center">
+              <p className="text-white text-xl font-black tracking-widest uppercase">QUAID-E-AZAM</p>
+              <p className="text-amber-400 text-xs font-bold tracking-[0.3em] uppercase mt-1">Wazirabad ⋅ Dhonikey</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -404,27 +409,28 @@ function AppContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-600/5 blur-[120px]"></div>
-          <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] rounded-full bg-blue-600/5 blur-[100px]"></div>
+          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-slate-900/5 blur-[120px]"></div>
+          <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] rounded-full bg-amber-500/5 blur-[100px]"></div>
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-white p-10 text-center relative z-10"
+          className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-white p-12 text-center relative z-10"
         >
-          <div className="w-48 h-48 flex items-center justify-center mx-auto mb-8 bg-white rounded-3xl p-4 shadow-2xl shadow-slate-200/50 border border-slate-50">
-            <img src={logoImg} alt="National Model School Logo" className="w-full h-full object-contain drop-shadow-2xl" referrerPolicy="no-referrer" />
+          <div className="w-56 h-56 flex items-center justify-center mx-auto mb-10 bg-white rounded-full p-4 shadow-2xl shadow-slate-200/50 border-4 border-amber-400">
+            <img src="/logo.png" alt="QUAID-E-AZAM MODEL SCHOOL Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">National Model School</h1>
-          <p className="text-slate-500 mb-10 font-medium leading-relaxed">Manage your school system with ease, precision, and modern tools.</p>
+          <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight uppercase">QUAID-E-AZAM</h1>
+          <p className="text-amber-500 font-black tracking-[0.2em] mb-4 text-xs uppercase">Model School ⋅ Dhonikey</p>
+          <p className="text-slate-500 mb-10 font-medium leading-relaxed max-w-[280px] mx-auto text-sm">Empowering the next generation with modern education and values.</p>
           <button 
             onClick={login}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl shadow-slate-900/20 hover:shadow-blue-600/30 hover:-translate-y-1"
+            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl shadow-slate-900/20 hover:shadow-slate-900/40 hover:-translate-y-1"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6 bg-white rounded-full p-1" alt="Google" />
             Sign in with Google
@@ -440,15 +446,18 @@ function AppContent() {
         {/* Sidebar */}
         <aside className="w-72 bg-slate-950 border-r border-slate-900 flex flex-col sticky top-0 h-screen text-white">
           <div className="p-6 flex items-center gap-4">
-            <div className="w-20 h-20 flex items-center justify-center bg-white/10 rounded-2xl p-2 shadow-xl backdrop-blur-sm border border-white/10">
-              <img src={logoImg} alt="Logo" className="w-full h-full object-contain drop-shadow-2xl" referrerPolicy="no-referrer" />
+            <div className="w-20 h-20 flex items-center justify-center bg-white rounded-full p-2 shadow-xl border-4 border-amber-400">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-2xl font-bold text-white leading-tight tracking-wide">National Model<br/>School</h1>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-bold text-white leading-tight tracking-wide">QUAID-E-AZAM</h1>
+              <p className="text-amber-400 text-[10px] font-black tracking-[0.2em] uppercase">Model School</p>
+              <p className="text-slate-500 text-[8px] font-bold uppercase">Wazirabad Dhonikey</p>
+            </div>
           </div>
 
           <nav className="flex-1 px-4 py-4 flex flex-col gap-2 overflow-y-auto">
             <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" />
-            <SidebarItem icon={School} label="Branches" to="/branches" />
             <SidebarItem icon={Users} label="Students" to="/students" />
             <SidebarItem icon={UserSquare2} label="Teachers" to="/teachers" />
             <SidebarItem icon={Wallet} label="Finance" to="/finance" />
@@ -479,21 +488,19 @@ function AppContent() {
           {/* Header */}
           <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                {selectedBranchId === 'all' ? 'Overview' : branches.find(b => b.id === selectedBranchId)?.name || 'Branch Details'}
-              </h2>
-              <div className="h-6 w-px bg-slate-200 mx-2"></div>
-              <select 
-                value={selectedBranchId}
-                onChange={(e) => setSelectedBranchId(e.target.value)}
-                className="bg-slate-100/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all hover:bg-slate-100"
-              >
-                <option value="all">All Branches</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+              <div className="w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center border-2 border-amber-400 shadow-sm shadow-amber-400/20">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-[8px] font-black text-amber-500 uppercase tracking-[0.2em]">Wazirabad ⋅ Dhonikey</p>
+                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Management Dashboard</p>
+                </div>
+              </div>
             </div>
+            
             
             <div className="flex items-center gap-6">
               <div className="relative group">
@@ -519,21 +526,18 @@ function AppContent() {
             <Routes>
               <Route path="/" element={
                 <Dashboard 
-                  branches={branches} 
                   students={students} 
                   teachers={teachers} 
                   fees={fees} 
                   salaries={salaries} 
-                  expenses={expenses}
-                  selectedBranchId={selectedBranchId}
+                  expenses={expenses} 
                 />
               } />
-              <Route path="/branches" element={<BranchesManager branches={branches} />} />
-              <Route path="/students" element={<StudentsManager students={students} branches={branches} selectedBranchId={selectedBranchId} />} />
-              <Route path="/teachers" element={<TeachersManager teachers={teachers} branches={branches} selectedBranchId={selectedBranchId} />} />
-              <Route path="/finance" element={<FinanceManager fees={fees} salaries={salaries} expenses={expenses} branches={branches} students={students} teachers={teachers} selectedBranchId={selectedBranchId} />} />
-              <Route path="/attendance" element={<AttendanceManager attendance={attendance} students={students} teachers={teachers} branches={branches} selectedBranchId={selectedBranchId} />} />
-              <Route path="/exams" element={<ExamsManager exams={exams} results={results} students={students} branches={branches} selectedBranchId={selectedBranchId} />} />
+              <Route path="/students" element={<StudentsManager students={students} />} />
+              <Route path="/teachers" element={<TeachersManager teachers={teachers} />} />
+              <Route path="/finance" element={<FinanceManager fees={fees} salaries={salaries} expenses={expenses} students={students} teachers={teachers} />} />
+              <Route path="/attendance" element={<AttendanceManager attendance={attendance} students={students} teachers={teachers} />} />
+              <Route path="/exams" element={<ExamsManager exams={exams} results={results} students={students} />} />
             </Routes>
           </div>
         </main>
@@ -544,39 +548,33 @@ function AppContent() {
 
 // --- Dashboard Component ---
 
-function Dashboard({ branches, students, teachers, fees, salaries, expenses, selectedBranchId }: any) {
-  const filteredStudents = selectedBranchId === 'all' ? students : students.filter((s: any) => s.branchId === selectedBranchId);
-  const filteredTeachers = selectedBranchId === 'all' ? teachers : teachers.filter((t: any) => t.branchId === selectedBranchId);
-  const filteredFees = selectedBranchId === 'all' ? fees : fees.filter((f: any) => f.branchId === selectedBranchId);
-  const filteredSalaries = selectedBranchId === 'all' ? salaries : salaries.filter((s: any) => s.branchId === selectedBranchId);
-  const filteredExpenses = selectedBranchId === 'all' ? expenses : expenses.filter((e: any) => e.branchId === selectedBranchId);
-
-  const totalIncome = filteredFees.reduce((acc: number, f: any) => acc + (f.status === 'paid' ? f.amount : 0), 0);
-  const totalExpense = filteredSalaries.reduce((acc: number, s: any) => acc + (s.status === 'paid' ? s.amount : 0), 0) + 
-                       filteredExpenses.reduce((acc: number, e: any) => acc + e.amount, 0);
+function Dashboard({ students, teachers, fees, salaries, expenses }: any) {
+  const totalIncome = fees.reduce((acc: number, f: any) => acc + (f.status === 'paid' ? f.amount : 0), 0);
+  const totalExpense = salaries.reduce((acc: number, s: any) => acc + (s.status === 'paid' ? s.amount : 0), 0) + 
+                       expenses.reduce((acc: number, e: any) => acc + e.amount, 0);
 
   const chartData = useMemo(() => {
     // Group by month for the last 6 months
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months.map(m => {
-      const income = filteredFees.filter((f: any) => f.month === m && f.status === 'paid').reduce((acc: number, f: any) => acc + f.amount, 0);
-      const expense = filteredSalaries.filter((s: any) => s.month === m && s.status === 'paid').reduce((acc: number, s: any) => acc + s.amount, 0) +
-                      filteredExpenses.filter((e: any) => format(new Date(e.date), 'MMM') === m).reduce((acc: number, e: any) => acc + e.amount, 0);
+      const income = fees.filter((f: any) => f.month === m && f.status === 'paid').reduce((acc: number, f: any) => acc + f.amount, 0);
+      const expense = salaries.filter((s: any) => s.month === m && s.status === 'paid').reduce((acc: number, s: any) => acc + s.amount, 0) +
+                      expenses.filter((e: any) => format(new Date(e.date), 'MMM') === m).reduce((acc: number, e: any) => acc + e.amount, 0);
       return { name: m, income, expense };
     });
-  }, [filteredFees, filteredSalaries, filteredExpenses]);
+  }, [fees, salaries, expenses]);
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Students" value={filteredStudents.length} icon={Users} color="bg-blue-600" trend={{ value: "+12% from last month", up: true }} />
-        <StatCard title="Total Teachers" value={filteredTeachers.length} icon={UserSquare2} color="bg-purple-600" />
+        <StatCard title="Total Students" value={students.length} icon={Users} color="bg-blue-600" trend={{ value: "+12% from last month", up: true }} />
+        <StatCard title="Total Teachers" value={teachers.length} icon={UserSquare2} color="bg-purple-600" />
         <StatCard title="Monthly Income" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} color="bg-emerald-600" trend={{ value: "+5.4%", up: true }} />
         <StatCard title="Monthly Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} color="bg-rose-600" trend={{ value: "+2.1%", up: false }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card title="Financial Overview" className="lg:col-span-2">
+        <Card title="Financial Overview" className="lg:col-span-3">
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
@@ -594,174 +592,23 @@ function Dashboard({ branches, students, teachers, fees, salaries, expenses, sel
           </div>
         </Card>
 
-        <Card title="Branch Distribution" subtitle="Students per branch">
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={branches.map((b: any) => ({ name: b.name, value: students.filter((s: any) => s.branchId === b.id).length }))}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {branches.map((_: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={['#4f46e5', '#7c3aed', '#db2777', '#ea580c', '#059669'][index % 5]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
       </div>
-    </div>
-  );
-}
-
-// --- Branches Manager ---
-
-function BranchesManager({ branches }: { branches: Branch[] }) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [newBranch, setNewBranch] = useState({ name: '', location: '', contact: '' });
-
-  const handleAdd = async () => {
-    if (!newBranch.name) return;
-    try {
-      await addDoc(collection(db, 'branches'), newBranch);
-      setNewBranch({ name: '', location: '', contact: '' });
-      setIsAdding(false);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, 'branches');
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold text-slate-900">Manage Branches</h3>
-        <button 
-          onClick={() => setIsAdding(true)}
-          className="bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-800 transition-all shadow-md shadow-blue-100"
-        >
-          <Plus size={20} /> Add Branch
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {branches.map(branch => (
-          <Card key={branch.id} className="hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <School size={24} />
-              </div>
-              <div className="flex gap-2">
-                <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit size={16} /></button>
-                <button 
-                  onClick={async () => {
-                    try {
-                      await deleteDoc(doc(db, 'branches', branch.id));
-                    } catch (err) {
-                      handleFirestoreError(err, OperationType.DELETE, `branches/${branch.id}`);
-                    }
-                  }}
-                  className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
-                ><Trash2 size={16} /></button>
-              </div>
-            </div>
-            <h4 className="text-xl font-bold text-slate-900 mb-1">{branch.name}</h4>
-            <p className="text-slate-500 text-sm mb-4 flex items-center gap-2">
-              <ChevronRight size={14} /> {branch.location}
-            </p>
-            <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Contact</span>
-              <span className="text-sm font-semibold text-slate-700">{branch.contact}</span>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {isAdding && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
-            >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h4 className="text-xl font-bold text-slate-900">Add New Branch</h4>
-                <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600"><X size={24} /></button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Branch Name</label>
-                  <input 
-                    type="text" 
-                    value={newBranch.name}
-                    onChange={e => setNewBranch({...newBranch, name: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Downtown Campus"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-                  <input 
-                    type="text" 
-                    value={newBranch.location}
-                    onChange={e => setNewBranch({...newBranch, location: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 123 Main St, City"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Contact Number</label>
-                  <input 
-                    type="text" 
-                    value={newBranch.contact}
-                    onChange={e => setNewBranch({...newBranch, contact: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. +1 234 567 890"
-                  />
-                </div>
-              </div>
-              <div className="p-6 bg-slate-50 flex gap-3">
-                <button 
-                  onClick={() => setIsAdding(false)}
-                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-50 transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleAdd}
-                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
-                >
-                  Save Branch
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
 // --- Students Manager ---
 
-function StudentsManager({ students, branches, selectedBranchId }: any) {
+function StudentsManager({ students }: any) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [selectedStudentForId, setSelectedStudentForId] = useState<Student | null>(null);
   const [newStudent, setNewStudent] = useState({ 
-    name: '', branchId: '', rollNumber: '', class: '', section: '', fatherName: '', contact: '', address: '', status: 'active', imageUrl: '' 
+    name: '', rollNumber: '', class: '', section: '', fatherName: '', contact: '', address: '', status: 'active', imageUrl: '' 
   });
   const [errorMsg, setErrorMsg] = useState('');
 
-  const filteredStudents = selectedBranchId === 'all' ? students : students.filter((s: any) => s.branchId === selectedBranchId);
+  const filteredStudents = students;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -805,7 +652,7 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
   };
 
   const openAddModal = () => {
-    setNewStudent({ name: '', branchId: '', rollNumber: '', class: '', section: '', fatherName: '', contact: '', address: '', status: 'active', imageUrl: '' });
+    setNewStudent({ name: '', rollNumber: '', class: '', section: '', fatherName: '', contact: '', address: '', status: 'active', imageUrl: '' });
     setEditingStudentId(null);
     setErrorMsg('');
     setIsAdding(true);
@@ -814,7 +661,7 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
   const openEditModal = (student: Student) => {
     setNewStudent({
       name: student.name || '',
-      branchId: student.branchId || '',
+      
       rollNumber: student.rollNumber || '',
       class: student.class || '',
       section: student.section || '',
@@ -835,19 +682,16 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
       setErrorMsg('Student Name is required.');
       return;
     }
-    if (!newStudent.branchId) {
-      setErrorMsg('Please select a Branch. If no branches exist, create one first in the Branches tab.');
-      return;
-    }
+    
     
     let finalRollNumber = newStudent.rollNumber.trim();
     if (finalRollNumber) {
       let baseRoll = finalRollNumber;
-      if (baseRoll.startsWith('NMS-')) {
+      if (baseRoll.startsWith('QMS-')) {
         const parts = baseRoll.split('-');
         baseRoll = parts[parts.length - 1];
       }
-      finalRollNumber = `NMS-${newStudent.class || '0'}-${baseRoll}`;
+      finalRollNumber = `QMS-${newStudent.class || '0'}-${baseRoll}`;
     }
 
     const studentDataToSave = {
@@ -893,7 +737,6 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Roll No</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Class</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Branch</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -919,9 +762,6 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                   <td className="px-6 py-4 text-sm text-slate-600">{student.rollNumber}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{student.class} - {student.section}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{student.contact || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {branches.find((b: any) => b.id === student.branchId)?.name || 'Unknown'}
-                  </td>
                   <td className="px-6 py-4">
                     <span className={cn(
                       "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
@@ -1010,21 +850,10 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                    <select 
-                      value={newStudent.branchId}
-                      onChange={e => setNewStudent({...newStudent, branchId: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Branch</option>
-                      {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Roll Number</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. 45 (Auto-formats to NMS-Class-45)"
+                      placeholder="e.g. 45 (Auto-formats to QMS-Class-45)"
                       value={newStudent.rollNumber}
                       onChange={e => setNewStudent({...newStudent, rollNumber: e.target.value})}
                       className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
@@ -1110,11 +939,12 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                     <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full border-4 border-white"></div>
                     <div className="absolute top-10 -right-10 w-32 h-32 rounded-full border-4 border-white"></div>
                   </div>
-                  <img src={logoImg} alt="Logo" className="w-12 h-12 drop-shadow-2xl bg-white/20 rounded-lg p-1 backdrop-blur-sm z-10" />
-                  <div className="text-left z-10">
-                    <h2 className="text-white font-bold text-lg leading-tight tracking-tight">National Model School</h2>
-                    <p className="text-blue-200 text-[10px] uppercase tracking-widest font-bold">Student ID Card</p>
-                  </div>
+                  <img src="/logo.png" alt="Logo" className="w-12 h-12 shadow-lg bg-white rounded-lg p-1 z-10" />
+                <div className="text-left z-10">
+                  <h2 className="text-white font-bold text-lg leading-tight tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
+                  <p className="text-amber-400 text-[8px] uppercase tracking-[0.3em] font-black">Wazirabad ⋅ Dhonikey</p>
+                  <p className="text-blue-100 text-[9px] uppercase tracking-widest font-bold mt-1">Student ID Card</p>
+                </div>
                 </div>
 
                 {/* ID Card Body (Landscape) */}
@@ -1149,12 +979,7 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                         <span className="text-slate-500 font-medium">Contact:</span>
                         <span className="text-slate-900 font-bold">{selectedStudentForId.contact || 'N/A'}</span>
                       </div>
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Branch:</span>
-                        <span className="text-slate-900 font-bold truncate max-w-[120px] text-right">
-                          {branches.find((b: any) => b.id === selectedStudentForId.branchId)?.name || 'Unknown'}
-                        </span>
-                      </div>
+                      
                     </div>
                     
                     <div className="flex justify-between items-end mt-3">
@@ -1162,7 +987,7 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
                         <span className="text-[6px] text-slate-400 uppercase font-bold tracking-widest rotate-90">Valid 2026</span>
                       </div>
                       <div className="text-right flex flex-col items-end relative">
-                        <img src={signatureImg} alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
+                        <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
                         <span className="font-signature text-blue-800 text-lg absolute bottom-3 right-0 hidden z-10">S. Q. Abbas</span>
                         <div className="w-24 border-t border-slate-400 pt-0.5 mt-8 text-center">
                           <span className="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Principal Signature</span>
@@ -1192,16 +1017,16 @@ function StudentsManager({ students, branches, selectedBranchId }: any) {
 
 // --- Teachers Manager ---
 
-function TeachersManager({ teachers, branches, selectedBranchId }: any) {
+function TeachersManager({ teachers }: any) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
   const [selectedTeacherForId, setSelectedTeacherForId] = useState<Teacher | null>(null);
   const [newTeacher, setNewTeacher] = useState({ 
-    name: '', branchId: '', employeeId: '', subject: '', qualification: '', contact: '', salary: 0, status: 'active', imageUrl: '' 
+    name: '', employeeId: '', subject: '', qualification: '', contact: '', salary: 0, status: 'active', imageUrl: '' 
   });
   const [errorMsg, setErrorMsg] = useState('');
 
-  const filteredTeachers = selectedBranchId === 'all' ? teachers : teachers.filter((t: any) => t.branchId === selectedBranchId);
+  const filteredTeachers = teachers;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1245,7 +1070,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
   };
 
   const openAddModal = () => {
-    setNewTeacher({ name: '', branchId: '', employeeId: '', subject: '', qualification: '', contact: '', salary: 0, status: 'active', imageUrl: '' });
+    setNewTeacher({ name: '', employeeId: '', subject: '', qualification: '', contact: '', salary: 0, status: 'active', imageUrl: '' });
     setEditingTeacherId(null);
     setErrorMsg('');
     setIsAdding(true);
@@ -1254,7 +1079,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
   const openEditModal = (teacher: Teacher) => {
     setNewTeacher({
       name: teacher.name || '',
-      branchId: teacher.branchId || '',
+      
       employeeId: teacher.employeeId || '',
       subject: teacher.subject || '',
       qualification: teacher.qualification || '',
@@ -1274,10 +1099,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
       setErrorMsg('Teacher Name is required.');
       return;
     }
-    if (!newTeacher.branchId) {
-      setErrorMsg('Please select a Branch. If no branches exist, create one first in the Branches tab.');
-      return;
-    }
+    
 
     try {
       if (editingTeacherId) {
@@ -1354,12 +1176,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
                 <span className="text-slate-400">Employee ID</span>
                 <span className="font-medium text-slate-700">{teacher.employeeId}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-400">Branch</span>
-                <span className="font-medium text-slate-700">
-                  {branches.find((b: any) => b.id === teacher.branchId)?.name || 'Unknown'}
-                </span>
-              </div>
+              
               <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-400">Salary</span>
                 <span className="font-bold text-blue-600">Rs. {teacher.salary.toLocaleString()}</span>
@@ -1413,17 +1230,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
                       className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                    <select 
-                      value={newTeacher.branchId}
-                      onChange={e => setNewTeacher({...newTeacher, branchId: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Branch</option>
-                      {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
-                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>
                     <input 
@@ -1513,11 +1320,12 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
                     <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full border-4 border-black"></div>
                     <div className="absolute top-10 -right-10 w-32 h-32 rounded-full border-4 border-black"></div>
                   </div>
-                  <img src={logoImg} alt="Logo" className="w-12 h-12 drop-shadow-2xl bg-white/50 rounded-lg p-1 backdrop-blur-sm z-10" />
-                  <div className="text-left z-10">
-                    <h2 className="text-slate-900 font-bold text-lg leading-tight tracking-tight">National Model School</h2>
-                    <p className="text-slate-700 text-[10px] uppercase tracking-widest font-bold">Staff ID Card</p>
-                  </div>
+                  <img src="/logo.png" alt="Logo" className="w-12 h-12 shadow-lg bg-white rounded-lg p-1 z-10" />
+                <div className="text-left z-10">
+                  <h2 className="text-slate-900 font-bold text-lg leading-tight tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
+                  <p className="text-slate-700 text-[8px] uppercase tracking-[0.3em] font-black">Wazirabad ⋅ Dhonikey</p>
+                  <p className="text-slate-600 text-[9px] uppercase tracking-widest font-bold mt-1">Staff ID Card</p>
+                </div>
                 </div>
 
                 {/* ID Card Body (Landscape) */}
@@ -1552,12 +1360,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
                         <span className="text-slate-500 font-medium">Contact:</span>
                         <span className="text-slate-900 font-bold">{selectedTeacherForId.contact || 'N/A'}</span>
                       </div>
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Branch:</span>
-                        <span className="text-slate-900 font-bold truncate max-w-[120px] text-right">
-                          {branches.find((b: any) => b.id === selectedTeacherForId.branchId)?.name || 'Unknown'}
-                        </span>
-                      </div>
+                      
                     </div>
                     
                     <div className="flex justify-between items-end mt-3">
@@ -1565,7 +1368,7 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
                         <span className="text-[6px] text-slate-400 uppercase font-bold tracking-widest rotate-90">Valid 2026</span>
                       </div>
                       <div className="text-right flex flex-col items-end relative">
-                        <img src={signatureImg} alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
+                        <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
                         <span className="font-signature text-blue-800 text-lg absolute bottom-3 right-0 hidden z-10">S. Q. Abbas</span>
                         <div className="w-24 border-t border-slate-400 pt-0.5 mt-8 text-center">
                           <span className="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Principal Signature</span>
@@ -1595,17 +1398,17 @@ function TeachersManager({ teachers, branches, selectedBranchId }: any) {
 
 // --- Finance Manager ---
 
-function FinanceManager({ fees, salaries, expenses, branches, students, teachers, selectedBranchId }: any) {
+function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
   const [activeTab, setActiveTab] = useState<'fees' | 'salaries' | 'expenses' | 'balance'>('fees');
   const [isAdding, setIsAdding] = useState(false);
   const [viewingFeeSlip, setViewingFeeSlip] = useState<Fee | null>(null);
-  const [newFee, setNewFee] = useState({ studentId: '', branchId: '', month: format(new Date(), 'MMM'), year: new Date().getFullYear(), amount: 0, status: 'unpaid' });
-  const [newSalary, setNewSalary] = useState({ teacherId: '', branchId: '', month: format(new Date(), 'MMM'), year: new Date().getFullYear(), amount: 0, status: 'unpaid' });
-  const [newExpense, setNewExpense] = useState({ branchId: '', category: '', amount: 0, description: '', date: format(new Date(), 'yyyy-MM-dd') });
+  const [newFee, setNewFee] = useState({ studentId: '', month: format(new Date(), 'MMM'), year: new Date().getFullYear(), amount: 0, status: 'unpaid' });
+  const [newSalary, setNewSalary] = useState({ teacherId: '', month: format(new Date(), 'MMM'), year: new Date().getFullYear(), amount: 0, status: 'unpaid' });
+  const [newExpense, setNewExpense] = useState({ category: '', amount: 0, description: '', date: format(new Date(), 'yyyy-MM-dd') });
   
-  const filteredFees = selectedBranchId === 'all' ? fees : fees.filter((f: any) => f.branchId === selectedBranchId);
-  const filteredSalaries = selectedBranchId === 'all' ? salaries : salaries.filter((s: any) => s.branchId === selectedBranchId);
-  const filteredExpenses = selectedBranchId === 'all' ? expenses : expenses.filter((e: any) => e.branchId === selectedBranchId);
+  const filteredFees = fees;
+  const filteredSalaries = salaries;
+  const filteredExpenses = expenses;
 
   const totalIncome = filteredFees.reduce((acc: number, f: any) => acc + (f.status === 'paid' ? f.amount : 0), 0);
   const totalExpense = filteredSalaries.reduce((acc: number, s: any) => acc + (s.status === 'paid' ? s.amount : 0), 0) + 
@@ -1631,7 +1434,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
       formattedContact = '92' + formattedContact;
     }
 
-    const message = `🏫 *National Model School*\n*FEE RECEIPT*\n\n*Student:* ${student.name}\n*Roll No:* ${student.rollNumber || 'N/A'}\n*Class:* ${student.class || 'N/A'} - ${student.section || 'N/A'}\n*Fee Month:* ${fee.month} ${fee.year}\n*Amount Paid:* Rs. ${fee.amount.toLocaleString()}\n*Status:* ${fee.status.toUpperCase()} ${fee.status === 'paid' ? '✅' : '❌'}\n\nThank you for your payment!`;
+    const message = `🏫 *QUAID-E-AZAM MODEL SCHOOL*\n*FEE RECEIPT*\n\n*Student:* ${student.name}\n*Roll No:* ${student.rollNumber || 'N/A'}\n*Class:* ${student.class || 'N/A'} - ${student.section || 'N/A'}\n*Fee Month:* ${fee.month} ${fee.year}\n*Amount Paid:* Rs. ${fee.amount.toLocaleString()}\n*Status:* ${fee.status.toUpperCase()} ${fee.status === 'paid' ? '✅' : '❌'}\n\nThank you for your payment!`;
     
     const whatsappUrl = `https://wa.me/${formattedContact}?text=${encodeURIComponent(message)}`;
     
@@ -1650,7 +1453,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
   };
 
   const handleAddFee = async () => {
-    if (!newFee.studentId || !newFee.branchId) return;
+    if (!newFee.studentId) return;
     
     const student = students.find((s: any) => s.id === newFee.studentId);
     const shouldSendWhatsApp = newFee.status === 'paid';
@@ -1679,7 +1482,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
   };
 
   const handleAddSalary = async () => {
-    if (!newSalary.teacherId || !newSalary.branchId) return;
+    if (!newSalary.teacherId) return;
     try {
       await addDoc(collection(db, 'salaries'), {
         ...newSalary,
@@ -1692,7 +1495,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
   };
 
   const handleAddExpense = async () => {
-    if (!newExpense.branchId || !newExpense.amount) return;
+    if (!newExpense.amount) return;
     try {
       await addDoc(collection(db, 'expenses'), newExpense);
       setIsAdding(false);
@@ -1818,7 +1621,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
       )}
 
       {activeTab === 'expenses' && (
-        <Card title="Branch Expenses" action={
+        <Card title="School Expenses" action={
           <button onClick={() => setIsAdding(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition-all">
             <Plus size={16} /> Add Expense
           </button>
@@ -1933,9 +1736,10 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                 >
                   <X size={20} />
                 </button>
-                <img src={logoImg} alt="Logo" className="w-16 h-16 mx-auto mb-3 object-contain" referrerPolicy="no-referrer" />
-                <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase">National Model School</h3>
-                <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mt-1">Fee Receipt</p>
+                <img src="/logo.png" alt="Logo" className="w-28 h-28 mx-auto mb-4 object-contain"  />
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h3>
+                <p className="text-slate-500 text-[10px] font-bold tracking-[0.3em] uppercase mt-1">Wazirabad ⋅ Dhonikey</p>
+                <div className="w-16 h-1 bg-amber-400 mx-auto mt-4"></div>
               </div>
 
               {/* Body */}
@@ -1949,8 +1753,8 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                     <p className="text-slate-900 font-medium text-right">{students.find((s: any) => s.id === viewingFeeSlip.studentId)?.rollNumber || 'N/A'}</p>
                     <p className="text-slate-500">Class:</p>
                     <p className="text-slate-900 font-medium text-right">{students.find((s: any) => s.id === viewingFeeSlip.studentId)?.class || 'N/A'} - {students.find((s: any) => s.id === viewingFeeSlip.studentId)?.section || 'N/A'}</p>
-                    <p className="text-slate-500">Branch:</p>
-                    <p className="text-slate-900 font-medium text-right">{branches.find((b: any) => b.id === viewingFeeSlip.branchId)?.name || 'Unknown'}</p>
+                    
+                    
                   </div>
                 </div>
 
@@ -1982,7 +1786,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Cashier</p>
                     </div>
                     <div className="text-center flex flex-col items-center relative">
-                      <img src={signatureImg} alt="S. Q. Abbas" className="absolute bottom-3 h-14 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
+                      <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 h-14 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
                       <span className="font-signature text-blue-800 text-xl absolute bottom-3 hidden z-10">S. Q. Abbas</span>
                       <div className="w-24 border-t border-slate-400 pt-1 mt-10">
                         <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Principal</p>
@@ -2044,7 +1848,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                         value={newFee.studentId}
                         onChange={e => {
                           const s = students.find((st: any) => st.id === e.target.value);
-                          setNewFee({...newFee, studentId: e.target.value, branchId: s?.branchId || ''});
+                          setNewFee({...newFee, studentId: e.target.value, });
                         }}
                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
                       >
@@ -2093,7 +1897,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                         value={newSalary.teacherId}
                         onChange={e => {
                           const t = teachers.find((th: any) => th.id === e.target.value);
-                          setNewSalary({...newSalary, teacherId: e.target.value, branchId: t?.branchId || '', amount: t?.salary || 0});
+                          setNewSalary({...newSalary, teacherId: e.target.value, amount: t?.salary || 0});
                         }}
                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
                       >
@@ -2136,17 +1940,7 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
                   </>
                 ) : (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                      <select 
-                        value={newExpense.branchId}
-                        onChange={e => setNewExpense({...newExpense, branchId: e.target.value})}
-                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Branch</option>
-                        {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                      </select>
-                    </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
                       <input 
@@ -2202,13 +1996,13 @@ function FinanceManager({ fees, salaries, expenses, branches, students, teachers
 
 // --- Attendance Manager ---
 
-function AttendanceManager({ attendance, students, teachers, branches, selectedBranchId }: any) {
+function AttendanceManager({ attendance, students, teachers }: any) {
   const [type, setType] = useState<'student' | 'teacher'>('student');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const filteredPeople = type === 'student' 
-    ? (selectedBranchId === 'all' ? students : students.filter((s: any) => s.branchId === selectedBranchId))
-    : (selectedBranchId === 'all' ? teachers : teachers.filter((t: any) => t.branchId === selectedBranchId));
+    ? students
+    : teachers;
 
   const handleMark = async (personId: string, status: 'present' | 'absent' | 'late' | 'leave') => {
     const existing = attendance.find((a: any) => a.personId === personId && a.date === date);
@@ -2219,7 +2013,7 @@ function AttendanceManager({ attendance, students, teachers, branches, selectedB
         await addDoc(collection(db, 'attendance'), {
           personId,
           type,
-          branchId: filteredPeople.find((p: any) => p.id === personId)?.branchId,
+          
           date,
           status
         });
@@ -2301,13 +2095,13 @@ function AttendanceManager({ attendance, students, teachers, branches, selectedB
 
 // --- Exams Manager ---
 
-function ExamsManager({ exams, results, students, branches, selectedBranchId }: any) {
+function ExamsManager({ exams, results, students }: any) {
   const [activeTab, setActiveTab] = useState<'exams' | 'results'>('exams');
   const [isAdding, setIsAdding] = useState(false);
   const [isGeneratingResult, setIsGeneratingResult] = useState(false);
   const [viewingResults, setViewingResults] = useState<string | null>(null);
   const [viewingResultCard, setViewingResultCard] = useState<Result | null>(null);
-  const [newExam, setNewExam] = useState({ title: '', branchId: '', date: format(new Date(), 'yyyy-MM-dd'), class: '', subject: '' });
+  const [newExam, setNewExam] = useState({ title: '', date: format(new Date(), 'yyyy-MM-dd'), class: '', subject: '' });
   const DEFAULT_SUBJECTS = [
     { subject: 'English', obtained: 0, total: 100 },
     { subject: 'Urdu', obtained: 0, total: 100 },
@@ -2329,14 +2123,11 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
     subjectMarks: DEFAULT_SUBJECTS
   });
 
-  const filteredExams = selectedBranchId === 'all' ? exams : exams.filter((e: any) => e.branchId === selectedBranchId);
-  const filteredResults = selectedBranchId === 'all' ? results : results.filter((r: any) => {
-    const student = students.find((s: any) => s.id === r.studentId);
-    return student?.branchId === selectedBranchId;
-  });
+  const filteredExams = exams;
+  const filteredResults = results;
 
   const handleAddExam = async () => {
-    if (!newExam.title || !newExam.branchId) return;
+    if (!newExam.title) return;
     try {
       await addDoc(collection(db, 'exams'), newExam);
       setIsAdding(false);
@@ -2429,7 +2220,7 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                   {format(new Date(exam.date), 'MMMM dd, yyyy')}
                 </div>
                 <div className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
-                  {branches.find((b: any) => b.id === exam.branchId)?.name}
+                  
                 </div>
               </div>
               <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
@@ -2558,10 +2349,10 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                       disabled={!newResult.examId}
                     >
                       <option value="">Select Student</option>
-                      {newResult.examId && students.filter((s: any) => s.branchId === exams.find((e: any) => e.id === newResult.examId)?.branchId).length === 0 && (
-                        <option value="" disabled>No students found for this exam's branch.</option>
+                      {newResult.examId && students.length === 0 && (
+                        <option value="" disabled>No students found.</option>
                       )}
-                      {students.filter((s: any) => s.branchId === exams.find((e: any) => e.id === newResult.examId)?.branchId).map((s: any) => (
+                      {students.map((s: any) => (
                         <option key={s.id} value={s.id}>{s.name} ({s.rollNumber})</option>
                       ))}
                     </select>
@@ -2658,17 +2449,7 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                     placeholder="e.g. Mid-Term Examination"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                  <select 
-                    value={newExam.branchId}
-                    onChange={e => setNewExam({...newExam, branchId: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Branch</option>
-                    {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
-                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Class</label>
@@ -2796,7 +2577,7 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select Student</option>
-                        {students.filter((s: any) => s.branchId === exams.find((e: any) => e.id === viewingResults)?.branchId).map((s: any) => (
+                        {students.map((s: any) => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
@@ -2875,8 +2656,8 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                 >
                   <X size={24} />
                 </button>
-                <img src={logoImg} alt="Logo" className="w-20 h-20 mx-auto mb-3 object-contain" referrerPolicy="no-referrer" />
-                <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">National Model School</h3>
+                <img src="/logo.png" alt="Logo" className="w-28 h-28 mx-auto mb-3 object-contain"  />
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h3>
                 <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mt-1">Academic Result Card</p>
               </div>
 
@@ -2977,7 +2758,7 @@ function ExamsManager({ exams, results, students, branches, selectedBranchId }: 
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Class Teacher</p>
                     </div>
                     <div className="text-center flex flex-col items-center relative">
-                      <img src={signatureImg} alt="S. Q. Abbas" className="absolute bottom-4 h-16 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
+                      <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-4 h-16 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
                       <span className="font-signature text-blue-800 text-2xl absolute bottom-4 hidden z-10">S. Q. Abbas</span>
                       <div className="w-28 border-t border-slate-300 pt-1 mt-12">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Principal</p>

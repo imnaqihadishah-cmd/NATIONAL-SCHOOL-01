@@ -1,14 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // Use the provided database ID, or default to '(default)' if it fails or is not provided.
-// In some environments, the named database might take a moment to be ready.
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
+// Enabling experimentalForceLongPolling can help resolve connectivity issues in some environments.
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, firebaseConfig.firestoreDatabaseId || '(default)');
 
 export enum OperationType {
   CREATE = 'create',
