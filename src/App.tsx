@@ -64,6 +64,7 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
+import { toBlob } from 'html-to-image';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -142,29 +143,31 @@ const SidebarItem = ({ icon: Icon, label, to }: { icon: any, label: string, to: 
     <Link 
       to={to} 
       className={cn(
-        "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden",
+        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
         active 
-          ? "text-slate-900 shadow-lg shadow-amber-500/20 bg-gradient-to-r from-amber-400 to-amber-500" 
-          : "text-slate-400 hover:bg-white/5 hover:text-white"
+          ? "text-white bg-school-orange shadow-md shadow-school-orange/20 font-semibold" 
+          : "text-slate-400 hover:text-white hover:bg-white/5 font-medium"
       )}
     >
+      <Icon size={18} className={cn("transition-transform duration-200 group-hover:scale-110", active ? "text-white" : "text-slate-400 group-hover:text-white")} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[14px]">{label}</span>
       {active && (
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <motion.div 
+          layoutId="sidebar-active"
+          className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
+        />
       )}
-      <Icon size={20} className={cn("transition-transform duration-300 group-hover:scale-110 relative z-10", active ? "text-white" : "text-slate-400 group-hover:text-white")} />
-      <span className="font-semibold tracking-wide relative z-10">{label}</span>
     </Link>
   );
 };
 
 const Card = ({ children, className, title, subtitle, action }: { children: React.ReactNode, className?: string, title?: string, subtitle?: string, action?: React.ReactNode }) => (
-  <div className={cn("bg-white rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden relative", className)}>
-    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0"></div>
+  <div className={cn("bg-white rounded-2xl border border-slate-200/50 shadow-sm overflow-hidden", className)}>
     {(title || action) && (
-      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+      <div className="px-6 py-5 border-b border-slate-50 flex items-center justify-between">
         <div>
-          {title && <h3 className="text-lg font-bold text-slate-800 tracking-tight">{title}</h3>}
-          {subtitle && <p className="text-sm text-slate-500 font-medium mt-0.5">{subtitle}</p>}
+          {title && <h3 className="text-lg font-bold text-navy-900 tracking-tight">{title}</h3>}
+          {subtitle && <p className="text-xs text-slate-400 font-medium mt-0.5">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -176,34 +179,30 @@ const Card = ({ children, className, title, subtitle, action }: { children: Reac
 );
 
 const StatCard = ({ title, value, icon: Icon, color, trend }: { title: string, value: string | number, icon: any, color: string, trend?: { value: string, up: boolean } }) => {
-  // Map base colors to their specific utility classes to avoid Tailwind purging
-  const colorMap: Record<string, { bg: string, text: string, lightBg: string, border: string }> = {
-    'bg-blue-600': { bg: 'bg-blue-600', text: 'text-blue-600', lightBg: 'bg-blue-50', border: 'border-blue-100/50' },
-    'bg-emerald-600': { bg: 'bg-emerald-600', text: 'text-emerald-600', lightBg: 'bg-emerald-50', border: 'border-emerald-100/50' },
-    'bg-amber-500': { bg: 'bg-amber-500', text: 'text-amber-600', lightBg: 'bg-amber-50', border: 'border-amber-100/50' },
-    'bg-purple-600': { bg: 'bg-purple-600', text: 'text-purple-600', lightBg: 'bg-purple-50', border: 'border-purple-100/50' },
-    'bg-rose-600': { bg: 'bg-rose-600', text: 'text-rose-600', lightBg: 'bg-rose-50', border: 'border-rose-100/50' },
-    'bg-slate-900': { bg: 'bg-slate-900', text: 'text-slate-900', lightBg: 'bg-slate-50', border: 'border-slate-200' },
-  };
-
-  const theme = colorMap[color] || colorMap['bg-blue-600'];
+  const isNavy = color.includes('navy');
   
   return (
-    <Card className="relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-      <div className={cn(`absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-[0.03] transition-transform duration-700 group-hover:scale-150`, theme.bg)} />
-      <div className="flex items-start justify-between relative z-10">
-        <div>
-          <p className="text-sm font-semibold text-slate-500 mb-1 uppercase tracking-wider">{title}</p>
-          <h4 className="text-3xl font-black text-slate-900 tracking-tight">{value}</h4>
-          {trend && (
-            <div className={cn("flex items-center gap-1 mt-3 text-sm font-bold", trend.up ? "text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md w-fit" : "text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md w-fit")}>
-              {trend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              <span>{trend.value}</span>
-            </div>
-          )}
+    <Card className="hover:border-slate-300 transition-colors">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <h4 className="text-2xl font-black text-navy-900">{value}</h4>
+            {trend && (
+              <span className={cn(
+                "text-[10px] font-bold px-1.5 py-0.5 rounded",
+                trend.up ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50"
+              )}>
+                {trend.up ? '↑' : '↓'} {trend.value.split(' ')[0]}
+              </span>
+            )}
+          </div>
         </div>
-        <div className={cn(`p-4 rounded-2xl shadow-inner border`, theme.lightBg, theme.text, theme.border)}>
-          <Icon size={28} strokeWidth={2.5} />
+        <div className={cn(
+          "p-3 rounded-xl",
+          isNavy ? "bg-navy-900 text-school-orange" : "bg-slate-50 text-slate-400"
+        )}>
+          <Icon size={20} />
         </div>
       </div>
     </Card>
@@ -390,51 +389,80 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="flex flex-col items-center gap-8">
-          <div className="w-32 h-32 bg-white rounded-full p-2 shadow-2xl border-4 border-amber-400 animate-pulse">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+      <div className="min-h-screen flex items-center justify-center bg-navy-950">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="w-24 h-24 bg-white rounded-full p-1 shadow-[0_0_40px_rgba(255,255,255,0.1)] relative z-10">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-2 border border-white/10 rounded-full"
+            />
           </div>
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
-            <div className="text-center">
-              <p className="text-white text-xl font-black tracking-widest uppercase">QUAID-E-AZAM</p>
-              <p className="text-amber-400 text-xs font-bold tracking-[0.3em] uppercase mt-1">Wazirabad ⋅ Dhonikey</p>
+          <div className="text-center space-y-2">
+            <p className="text-white text-lg font-black tracking-[0.4em] uppercase">QUAID-E-AZAM MODEL SCHOOL</p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="h-0.5 w-8 bg-school-orange rounded-full"></span>
+              <p className="text-slate-400 text-[10px] font-bold tracking-[0.2em] uppercase">Academic Excellence</p>
+              <span className="h-0.5 w-8 bg-school-orange rounded-full"></span>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-slate-900/5 blur-[120px]"></div>
-          <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] rounded-full bg-amber-500/5 blur-[100px]"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden font-sans">
+        {/* Cinematic Backdrop */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 right-0 w-[60%] h-[60%] bg-navy-900/5 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-school-orange/5 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-white p-12 text-center relative z-10"
+          className="max-w-md w-full relative z-10"
         >
-          <div className="w-56 h-56 flex items-center justify-center mx-auto mb-10 bg-white rounded-full p-4 shadow-2xl shadow-slate-200/50 border-4 border-amber-400">
-            <img src="/logo.png" alt="QUAID-E-AZAM MODEL SCHOOL Logo" className="w-full h-full object-contain" />
+          <div className="bg-white rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-slate-100 p-10 text-center">
+            <div className="inline-block mb-8 relative">
+              <div className="w-40 h-40 flex items-center justify-center bg-white rounded-full p-3 shadow-xl border border-slate-50">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            
+            <h1 className="text-3xl font-black text-navy-950 mb-1 tracking-tighter uppercase">QUAID-E-AZAM MODEL SCHOOL</h1>
+            <p className="text-school-orange font-bold tracking-[0.3em] mb-6 text-[10px] uppercase">Dhonikey ⋅ Wazirabad</p>
+            
+            <p className="text-slate-500 mb-10 text-sm leading-relaxed max-w-[300px] mx-auto">
+              Welcome to the official management portal of Quaid-E-Azam Model School.
+            </p>
+
+            <button 
+              onClick={login}
+              className="w-full py-4 bg-navy-950 text-white rounded-2xl font-bold hover:bg-navy-900 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-navy-950/20 hover:-translate-y-0.5 active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign in with Google
+            </button>
+            
+            <p className="mt-8 text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+              Authorized Personnel Only
+            </p>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight uppercase">QUAID-E-AZAM</h1>
-          <p className="text-amber-500 font-black tracking-[0.2em] mb-4 text-xs uppercase">Model School ⋅ Dhonikey</p>
-          <p className="text-slate-500 mb-10 font-medium leading-relaxed max-w-[280px] mx-auto text-sm">Empowering the next generation with modern education and values.</p>
-          <button 
-            onClick={login}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl shadow-slate-900/20 hover:shadow-slate-900/40 hover:-translate-y-1"
-          >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6 bg-white rounded-full p-1" alt="Google" />
-            Sign in with Google
-          </button>
         </motion.div>
       </div>
     );
@@ -442,21 +470,20 @@ function AppContent() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-50 flex">
+      <div className="min-h-screen bg-[#F8FAFC] flex">
         {/* Sidebar */}
-        <aside className="w-72 bg-slate-950 border-r border-slate-900 flex flex-col sticky top-0 h-screen text-white">
-          <div className="p-6 flex items-center gap-4">
-            <div className="w-20 h-20 flex items-center justify-center bg-white rounded-full p-2 shadow-xl border-4 border-amber-400">
+        <aside className="w-64 bg-navy-950 border-r border-navy-900 flex flex-col sticky top-0 h-screen text-white z-50">
+          <div className="p-8 flex flex-col items-center gap-4">
+            <div className="w-24 h-24 flex items-center justify-center bg-white rounded-full p-1 shadow-2xl">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold text-white leading-tight tracking-wide">QUAID-E-AZAM</h1>
-              <p className="text-amber-400 text-[10px] font-black tracking-[0.2em] uppercase">Model School</p>
-              <p className="text-slate-500 text-[8px] font-bold uppercase">Wazirabad Dhonikey</p>
+            <div className="text-center">
+              <h1 className="text-lg font-black text-white leading-none tracking-tighter uppercase font-display">QUAID-E-AZAM MODEL SCHOOL</h1>
+              <p className="text-school-orange text-[9px] font-bold tracking-[0.2em] uppercase mt-1">Dhonikey ⋅ Wazirabad</p>
             </div>
           </div>
 
-          <nav className="flex-1 px-4 py-4 flex flex-col gap-2 overflow-y-auto">
+          <nav className="flex-1 px-4 py-4 flex flex-col gap-1 overflow-y-auto">
             <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" />
             <SidebarItem icon={Users} label="Students" to="/students" />
             <SidebarItem icon={UserSquare2} label="Teachers" to="/teachers" />
@@ -465,38 +492,37 @@ function AppContent() {
             <SidebarItem icon={GraduationCap} label="Exams" to="/exams" />
           </nav>
 
-          <div className="p-4 border-t border-slate-800">
-            <div className="bg-slate-800/50 rounded-2xl p-4 flex items-center gap-3">
-              <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-slate-700 shadow-sm" alt="User" />
+          <footer className="p-4 mt-auto">
+            <div className="bg-navy-900 rounded-2xl p-4 flex items-center gap-3 border border-white/5">
+              <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border border-white/10" alt="User" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">{user.displayName}</p>
-                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                <p className="text-xs font-bold text-white truncate">{user.displayName}</p>
+                <p className="text-[10px] text-slate-400 truncate tracking-tight">{user.email}</p>
               </div>
               <button 
                 onClick={() => signOut(auth)}
-                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all"
                 title="Logout"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
               </button>
             </div>
-          </div>
+          </footer>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
+        <main className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center border-2 border-amber-400 shadow-sm shadow-amber-400/20">
+          <header className="h-20 bg-white/60 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-10 sticky top-0 z-40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-full p-1 shadow-sm border border-slate-100">
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-[8px] font-black text-amber-500 uppercase tracking-[0.2em]">Wazirabad ⋅ Dhonikey</p>
-                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Management Dashboard</p>
+                <h2 className="text-xl font-bold text-navy-950 tracking-tighter uppercase leading-none font-display">System Portal</h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">System Online</p>
                 </div>
               </div>
             </div>
@@ -504,14 +530,14 @@ function AppContent() {
             
             <div className="flex items-center gap-6">
               <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-school-orange transition-colors" size={16} />
                 <input 
                   type="text" 
                   placeholder="Search records..." 
-                  className="bg-slate-100/50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64 transition-all focus:bg-white"
+                  className="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-school-orange/20 focus:border-school-orange w-64 transition-all outline-hidden"
                 />
               </div>
-              <button className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+              <button className="p-2 bg-navy-900 text-school-orange rounded-xl hover:bg-navy-950 transition-all shadow-md shadow-navy-900/10 active:scale-95">
                 <Plus size={20} />
               </button>
               <div className="h-8 w-px bg-slate-200"></div>
@@ -567,26 +593,26 @@ function Dashboard({ students, teachers, fees, salaries, expenses }: any) {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Students" value={students.length} icon={Users} color="bg-blue-600" trend={{ value: "+12% from last month", up: true }} />
-        <StatCard title="Total Teachers" value={teachers.length} icon={UserSquare2} color="bg-purple-600" />
-        <StatCard title="Monthly Income" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} color="bg-emerald-600" trend={{ value: "+5.4%", up: true }} />
-        <StatCard title="Monthly Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} color="bg-rose-600" trend={{ value: "+2.1%", up: false }} />
+        <StatCard title="Total Students" value={students.length} icon={Users} color="bg-navy" trend={{ value: "+12% Growth", up: true }} />
+        <StatCard title="Total Teachers" value={teachers.length} icon={UserSquare2} color="bg-slate" />
+        <StatCard title="Monthly Income" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} color="bg-navy" trend={{ value: "+5.4% Revenue", up: true }} />
+        <StatCard title="Monthly Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} color="bg-slate" trend={{ value: "Controlled", up: false }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card title="Financial Overview" className="lg:col-span-3">
+        <Card title="Institutional Financial Health" subtitle="Income vs. Expense Analytics" className="lg:col-span-3">
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
                   cursor={{ fill: '#f8fafc' }}
                 />
-                <Bar dataKey="income" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={20} />
-                <Bar dataKey="expense" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar dataKey="income" fill="#001e3d" radius={[6, 6, 0, 0]} barSize={32} />
+                <Bar dataKey="expense" fill="#f07d00" radius={[6, 6, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -719,82 +745,94 @@ function StudentsManager({ students }: any) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold text-slate-900">Student Records</h3>
+        <div>
+          <h3 className="text-2xl font-black text-navy-950 tracking-tight uppercase">Student Records</h3>
+          <p className="text-xs text-slate-400 font-medium tracking-wide uppercase mt-1">Academic Year 2026-27</p>
+        </div>
         <button 
           onClick={openAddModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+          className="bg-navy-950 text-white px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-navy-900 transition-all shadow-lg shadow-navy-900/10 active:scale-95 text-sm font-bold uppercase tracking-wider"
         >
-          <Plus size={20} /> Add Student
+          <Plus size={18} /> Add Student
         </button>
       </div>
 
-      <Card className="p-0">
+      <Card className="p-0 border-slate-200">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Roll No</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Class</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Student / Guardian</th>
+                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Roll Number</th>
+                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Class / Sec</th>
+                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Options</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredStudents.map((student: Student) => (
-                <tr key={student.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                <tr key={student.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
                       {student.imageUrl ? (
-                        <img src={student.imageUrl} alt={student.name} className="w-10 h-10 rounded-full object-cover border-2 border-slate-100" />
+                        <div className="relative">
+                          <img src={student.imageUrl} alt={student.name} className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-sm" />
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+                        </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-blue-700/10 text-blue-700 flex items-center justify-center font-bold">
+                        <div className="w-12 h-12 rounded-2xl bg-navy-50 text-navy-900 flex items-center justify-center font-black text-lg border border-navy-100">
                           {student.name.charAt(0)}
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{student.name}</p>
-                        <p className="text-xs text-slate-500">{student.fatherName}</p>
+                        <p className="text-sm font-black text-navy-950 leading-tight">{student.name}</p>
+                        <p className="text-xs text-slate-400 font-medium tracking-tight mt-0.5">{student.fatherName}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{student.rollNumber}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{student.class} - {student.section}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{student.contact || '-'}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-5 font-mono text-xs font-bold text-slate-500 leading-none">
+                    <span className="bg-slate-100 px-2 py-1 rounded text-slate-700">{student.rollNumber}</span>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <span className="text-xs font-black text-navy-900 bg-navy-50 px-2.5 py-1 rounded-lg border border-navy-100 uppercase tracking-tighter">
+                      {student.class} - {student.section}
+                    </span>
+                  </td>
+                  <td className="px-6 py-5">
                     <span className={cn(
-                      "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                      student.status === 'active' ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                      "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
+                      student.status === 'active' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"
                     )}>
                       {student.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex justify-end gap-1 opacity-10 md:opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                       <button 
                         onClick={() => setSelectedStudentForId(student)}
-                        className="p-2 text-slate-400 hover:text-blue-700 transition-colors"
-                        title="View ID Card"
+                        className="p-2 text-slate-400 hover:text-navy-900 hover:bg-white rounded-lg shadow-sm transition-all border border-transparent hover:border-slate-100"
+                        title="Identity Card"
                       >
                         <UserSquare2 size={16} />
                       </button>
                       <button 
                         onClick={() => openEditModal(student)}
-                        className="p-2 text-slate-400 hover:text-blue-700 transition-colors"
-                        title="Edit Student"
+                        className="p-2 text-slate-400 hover:text-navy-900 hover:bg-white rounded-lg shadow-sm transition-all border border-transparent hover:border-slate-100"
+                        title="Modify Profile"
                       >
                         <Edit size={16} />
                       </button>
                       <button 
                         onClick={async () => {
-                          try {
-                            await deleteDoc(doc(db, 'students', student.id));
-                          } catch (err) {
-                            handleFirestoreError(err, OperationType.DELETE, `students/${student.id}`);
+                          if(confirm("Confirm deletion of this student profile?")) {
+                            try {
+                              await deleteDoc(doc(db, 'students', student.id));
+                            } catch (err) {
+                              handleFirestoreError(err, OperationType.DELETE, `students/${student.id}`);
+                            }
                           }
                         }}
-                        className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
+                        className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                       ><Trash2 size={16} /></button>
                     </div>
                   </td>
@@ -924,88 +962,90 @@ function StudentsManager({ students }: any) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] overflow-hidden relative print-area flex flex-col"
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 relative print-area flex flex-col"
             >
-              <button 
-                onClick={() => setSelectedStudentForId(null)} 
-                  className="absolute top-2 right-2 text-white/80 hover:text-white z-20 bg-black/20 rounded-full p-1 backdrop-blur-md no-print"
-                >
-                  <X size={16} />
-                </button>
-                
-                {/* ID Card Header (Landscape) */}
-                <div className="bg-blue-700 py-3 px-4 text-center relative overflow-hidden flex items-center gap-3">
-                  <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                    <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full border-4 border-white"></div>
-                    <div className="absolute top-10 -right-10 w-32 h-32 rounded-full border-4 border-white"></div>
-                  </div>
-                  <img src="/logo.png" alt="Logo" className="w-12 h-12 shadow-lg bg-white rounded-lg p-1 z-10" />
-                <div className="text-left z-10">
-                  <h2 className="text-white font-bold text-lg leading-tight tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
-                  <p className="text-amber-400 text-[8px] uppercase tracking-[0.3em] font-black">Wazirabad ⋅ Dhonikey</p>
-                  <p className="text-blue-100 text-[9px] uppercase tracking-widest font-bold mt-1">Student ID Card</p>
-                </div>
-                </div>
-
-                {/* ID Card Body (Landscape) */}
-                <div className="p-4 flex gap-4 bg-white relative flex-1">
-                  {/* Left Column: Photo & Name */}
-                  <div className="w-1/3 flex flex-col items-center justify-center border-r border-slate-100 pr-4">
-                    <div className="w-20 h-20 rounded-xl border-2 border-blue-100 shadow-sm bg-slate-100 overflow-hidden mb-3">
-                      {selectedStudentForId.imageUrl ? (
-                        <img src={selectedStudentForId.imageUrl} alt={selectedStudentForId.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-blue-700/10 text-blue-700 text-3xl font-bold">
-                          {selectedStudentForId.name.charAt(0)}
-                        </div>
-                      )}
+                <div className="h-[260px] w-full flex flex-col bg-white overflow-hidden text-slate-900 relative border-4 border-navy-950">
+                  {/* Luxury Header for ID Card */}
+                  <div className="bg-navy-950 px-4 py-3 flex items-center gap-3 border-b-2 border-school-orange">
+                    <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain bg-white rounded-full p-0.5" />
+                    <div className="flex-1 text-left">
+                      <h2 className="text-[12px] font-black leading-none text-white tracking-tighter uppercase font-display">QUAID-E-AZAM MODEL SCHOOL</h2>
+                      <p className="text-school-orange text-[7px] font-bold tracking-[0.25em] uppercase mt-0.5">Dhonikey ⋅ Wazirabad</p>
                     </div>
-                    <h3 className="text-sm font-bold text-slate-900 text-center leading-tight">{selectedStudentForId.name}</h3>
-                    <p className="text-blue-600 font-bold text-[10px] mt-0.5">{selectedStudentForId.class} - {selectedStudentForId.section}</p>
+                    <button 
+                      onClick={() => setSelectedStudentForId(null)} 
+                      className="text-white/40 hover:text-white no-print"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
                   
-                  {/* Right Column: Details & Signature */}
-                  <div className="w-2/3 flex flex-col justify-between">
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Roll No:</span>
-                        <span className="text-slate-900 font-bold">{selectedStudentForId.rollNumber}</span>
+                  <div className="flex-1 flex p-4 gap-4">
+                    {/* Left Column: Photo & Basic Rank */}
+                    <div className="w-1/3 flex flex-col items-center gap-2">
+                      <div className="w-24 h-28 bg-slate-50 rounded-xl border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center relative group">
+                        {selectedStudentForId.imageUrl ? (
+                          <img src={selectedStudentForId.imageUrl} alt="Student" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center text-slate-300">
+                            <Users size={32} />
+                            <span className="text-[8px] font-bold mt-1 uppercase">NO PHOTO</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Father:</span>
-                        <span className="text-slate-900 font-bold truncate max-w-[120px] text-right">{selectedStudentForId.fatherName}</span>
+                      <div className="text-center w-full">
+                        <h3 className="text-[13px] font-black text-navy-950 leading-tight truncate font-display uppercase">{selectedStudentForId.name}</h3>
+                        <p className="text-school-orange font-black text-[9px] mt-0.5 uppercase tracking-tighter inline-block px-2 bg-school-orange/10 rounded">STUDENT</p>
                       </div>
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Contact:</span>
-                        <span className="text-slate-900 font-bold">{selectedStudentForId.contact || 'N/A'}</span>
-                      </div>
-                      
                     </div>
                     
-                    <div className="flex justify-between items-end mt-3">
-                      <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center">
-                        <span className="text-[6px] text-slate-400 uppercase font-bold tracking-widest rotate-90">Valid 2026</span>
-                      </div>
-                      <div className="text-right flex flex-col items-end relative">
-                        <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
-                        <span className="font-signature text-blue-800 text-lg absolute bottom-3 right-0 hidden z-10">S. Q. Abbas</span>
-                        <div className="w-24 border-t border-slate-400 pt-0.5 mt-8 text-center">
-                          <span className="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Principal Signature</span>
+                    {/* Right Column: Key Academic Details */}
+                    <div className="w-2/3 flex flex-col justify-between py-1 text-left">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Registration</p>
+                          <p className="text-[11px] font-black text-navy-900 leading-none tracking-tight">{selectedStudentForId.rollNumber}</p>
                         </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                            <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Academic</p>
+                            <p className="text-[9px] font-black text-navy-900 leading-none">{selectedStudentForId.class}-{selectedStudentForId.section}</p>
+                          </div>
+                          <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                            <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session</p>
+                            <p className="text-[9px] font-black text-navy-900 leading-none">2026-27</p>
+                          </div>
+                        </div>
+                        <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                          <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Guardian / Contact</p>
+                          <p className="text-[9px] font-black text-navy-900 truncate tracking-tight">{selectedStudentForId.fatherName}</p>
+                          <p className="text-[8px] text-slate-500 font-bold mt-0.5">{selectedStudentForId.contact || '--------'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-end mt-2">
+                      <div className="text-right flex flex-col items-end relative w-full">
+                        <div className="w-full border-t border-navy-900/20 pt-1 mt-4 text-center">
+                          <span className="text-[7px] text-navy-950 uppercase font-black tracking-widest leading-none">Principal Authority</span>
+                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Bottom Safety Rail */}
+                  <div className="h-2 bg-navy-950 w-full mt-auto"></div>
                 </div>
                 
-                {/* Print Button (Hidden in print) */}
-                <div className="bg-slate-50 p-3 text-center border-t border-slate-100 no-print">
+                <div className="bg-slate-50 p-6 text-center border-t border-slate-100 no-print flex flex-col gap-3">
                   <button 
                     onClick={handlePrint}
-                    className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors inline-flex items-center gap-2"
+                    className="w-full bg-navy-950 text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-navy-900 transition-all flex items-center justify-center gap-3 shadow-lg shadow-navy-950/10 active:scale-95"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                    Print ID Card
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    Print Verification
                   </button>
+                  <button onClick={() => setSelectedStudentForId(null)} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">Close Registry</button>
                 </div>
             </motion.div>
           </div>
@@ -1121,65 +1161,74 @@ function TeachersManager({ teachers }: any) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold text-slate-900">Teacher Records</h3>
+        <div>
+          <h3 className="text-2xl font-black text-navy-950 tracking-tight uppercase">Faculty Registry</h3>
+          <p className="text-xs text-slate-400 font-medium tracking-wide uppercase mt-1">Personnel Management Portal</p>
+        </div>
         <button 
           onClick={openAddModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+          className="bg-navy-950 text-white px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-navy-900 transition-all shadow-lg shadow-navy-900/10 active:scale-95 text-sm font-bold uppercase tracking-wider"
         >
-          <Plus size={20} /> Add Teacher
+          <Plus size={18} /> Register Teacher
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTeachers.map((teacher: Teacher) => (
-          <Card key={teacher.id} className="hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
+          <Card key={teacher.id} className="hover:border-navy-900/20 transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-navy-50 rounded-bl-full -mr-12 -mt-12 transition-transform duration-500 group-hover:scale-150"></div>
+            <div className="flex justify-between items-start mb-6 relative z-10 text-right">
               {teacher.imageUrl ? (
-                <img src={teacher.imageUrl} alt={teacher.name} className="w-12 h-12 rounded-2xl object-cover border-2 border-slate-100" />
+                <img src={teacher.imageUrl} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover ring-4 ring-white shadow-md" />
               ) : (
-                <div className="w-12 h-12 rounded-2xl bg-blue-700/10 text-blue-700 flex items-center justify-center font-bold text-xl">
+                <div className="w-16 h-16 rounded-2xl bg-navy-900 text-school-orange flex items-center justify-center font-black text-2xl border-2 border-white shadow-md">
                   {teacher.name.charAt(0)}
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-1">
                 <button 
                   onClick={() => setSelectedTeacherForId(teacher)}
-                  className="p-2 text-slate-400 hover:text-blue-700 transition-colors"
-                  title="View ID Card"
+                  className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-lg transition-all"
+                  title="Personnel Card"
                 >
                   <UserSquare2 size={16} />
                 </button>
                 <button 
                   onClick={() => openEditModal(teacher)}
-                  className="p-2 text-slate-400 hover:text-blue-700 transition-colors"
-                  title="Edit Teacher"
+                  className="p-2 text-slate-400 hover:text-navy-950 hover:bg-white rounded-lg transition-all"
+                  title="Update Registry"
                 >
                   <Edit size={16} />
                 </button>
                 <button 
                   onClick={async () => {
-                    try {
-                      await deleteDoc(doc(db, 'teachers', teacher.id));
-                    } catch (err) {
-                      handleFirestoreError(err, OperationType.DELETE, `teachers/${teacher.id}`);
+                    if(confirm("Permanently delete faculty record?")) {
+                      try {
+                        await deleteDoc(doc(db, 'teachers', teacher.id));
+                      } catch (err) {
+                        handleFirestoreError(err, OperationType.DELETE, `teachers/${teacher.id}`);
+                      }
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
+                  className="p-2 text-slate-300 hover:text-rose-600 transition-all"
                 ><Trash2 size={16} /></button>
               </div>
             </div>
-            <h4 className="text-lg font-bold text-slate-900 mb-1">{teacher.name}</h4>
-            <p className="text-sm text-slate-500 mb-3">{teacher.subject} • {teacher.qualification}</p>
             
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-400">Employee ID</span>
-                <span className="font-medium text-slate-700">{teacher.employeeId}</span>
-              </div>
+            <div className="relative z-10">
+              <h4 className="text-xl font-black text-navy-950 mb-1 leading-none">{teacher.name}</h4>
+              <p className="text-school-orange font-black text-[10px] uppercase tracking-wider mb-4 inline-block px-2 py-0.5 bg-school-orange/5 rounded">{teacher.subject}</p>
               
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-400">Salary</span>
-                <span className="font-bold text-blue-600">Rs. {teacher.salary.toLocaleString()}</span>
+              <div className="space-y-3 pt-4 border-t border-slate-50">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400 font-bold uppercase tracking-widest leading-none">Qualification</span>
+                  <span className="font-black text-navy-950 uppercase">{teacher.qualification}</span>
+                </div>
+                
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400 font-bold uppercase tracking-widest leading-none">Settlement</span>
+                  <span className="text-navy-950 font-black text-xs">Rs. {teacher.salary.toLocaleString()}</span>
+                </div>
               </div>
             </div>
           </Card>
@@ -1323,7 +1372,7 @@ function TeachersManager({ teachers }: any) {
                   <img src="/logo.png" alt="Logo" className="w-12 h-12 shadow-lg bg-white rounded-lg p-1 z-10" />
                 <div className="text-left z-10">
                   <h2 className="text-slate-900 font-bold text-lg leading-tight tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h2>
-                  <p className="text-slate-700 text-[8px] uppercase tracking-[0.3em] font-black">Wazirabad ⋅ Dhonikey</p>
+                  <p className="text-slate-700 text-[8px] uppercase tracking-[0.3em] font-black">Dhonikey ⋅ Wazirabad</p>
                   <p className="text-slate-600 text-[9px] uppercase tracking-widest font-bold mt-1">Staff ID Card</p>
                 </div>
                 </div>
@@ -1368,8 +1417,6 @@ function TeachersManager({ teachers }: any) {
                         <span className="text-[6px] text-slate-400 uppercase font-bold tracking-widest rotate-90">Valid 2026</span>
                       </div>
                       <div className="text-right flex flex-col items-end relative">
-                        <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 right-0 h-10 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
-                        <span className="font-signature text-blue-800 text-lg absolute bottom-3 right-0 hidden z-10">S. Q. Abbas</span>
                         <div className="w-24 border-t border-slate-400 pt-0.5 mt-8 text-center">
                           <span className="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Principal Signature</span>
                         </div>
@@ -1406,6 +1453,10 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
   const [newSalary, setNewSalary] = useState({ teacherId: '', month: format(new Date(), 'MMM'), year: new Date().getFullYear(), amount: 0, status: 'unpaid' });
   const [newExpense, setNewExpense] = useState({ category: '', amount: 0, description: '', date: format(new Date(), 'yyyy-MM-dd') });
   
+  const [isCapturing, setIsCapturing] = useState(false);
+  
+  const feeSlipRef = React.useRef<HTMLDivElement>(null);
+
   const filteredFees = fees;
   const filteredSalaries = salaries;
   const filteredExpenses = expenses;
@@ -1414,12 +1465,42 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
   const totalExpense = filteredSalaries.reduce((acc: number, s: any) => acc + (s.status === 'paid' ? s.amount : 0), 0) + 
                        filteredExpenses.reduce((acc: number, e: any) => acc + e.amount, 0);
 
-  const sendWhatsAppReceipt = (fee: any, student: any, winRef?: Window | null) => {
+  const sendWhatsAppReceipt = async (fee: any, student: any, winRef?: Window | null) => {
     if (!student || !student.contact) {
       alert("Student contact number is missing! Cannot send WhatsApp receipt.");
       if (winRef) winRef.close();
       return;
     }
+
+    setIsCapturing(true);
+    
+    // Attempt to copy image to clipboard if feeSlipRef is available
+    let imageCopied = false;
+    if (feeSlipRef.current) {
+      try {
+        // Filter out buttons and other non-print elements
+        const blob = await toBlob(feeSlipRef.current, { 
+          cacheBust: true, 
+          filter: (node: any) => {
+            if (node.classList && (node.classList.contains('no-print') || node.tagName === 'BUTTON' || node.role === 'button')) return false;
+            return true;
+          },
+          backgroundColor: '#ffffff',
+          pixelRatio: 2 // Higher quality
+        });
+        
+        if (blob && navigator.clipboard && (window as any).ClipboardItem) {
+          await navigator.clipboard.write([
+            new (window as any).ClipboardItem({ 'image/png': blob })
+          ]);
+          imageCopied = true;
+        }
+      } catch (err) {
+        console.error("Failed to capture or copy image:", err);
+      }
+    }
+    
+    setIsCapturing(false);
     
     let formattedContact = student.contact.replace(/[^\d]/g, '');
     
@@ -1438,13 +1519,20 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
     
     const whatsappUrl = `https://wa.me/${formattedContact}?text=${encodeURIComponent(message)}`;
     
+    if (imageCopied) {
+      alert("✅ Fee receipt image copied to clipboard!\n\nOpening WhatsApp... Please PASTE (Ctrl+V) the image in the chat to send it.");
+    }
+
     if (winRef) {
       winRef.location.href = whatsappUrl;
     } else {
       try {
         const win = window.open(whatsappUrl, '_blank');
         if (!win) {
-          alert("WhatsApp popup was blocked by your browser. Please allow popups for this site.");
+          // If popup blocked, still alert about clipboard
+          if (!imageCopied) {
+            alert("WhatsApp popup was blocked by your browser. Please allow popups for this site.");
+          }
         }
       } catch (err) {
         console.error("Failed to open WhatsApp:", err);
@@ -1507,68 +1595,85 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Income" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} color="bg-emerald-600" />
-        <StatCard title="Total Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} color="bg-rose-600" />
-        <StatCard title="Net Balance" value={`Rs. ${(totalIncome - totalExpense).toLocaleString()}`} icon={DollarSign} color="bg-blue-600" />
+        <StatCard title="Institutional Revenue" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} color="bg-navy" trend={{ value: "+8.2% vs Last Month", up: true }} />
+        <StatCard title="Operating Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} color="bg-slate" />
+        <StatCard title="Net Liquid Assets" value={`Rs. ${(totalIncome - totalExpense).toLocaleString()}`} icon={DollarSign} color="bg-navy" />
       </div>
 
-      <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+      <div className="flex gap-1.5 p-1.5 bg-slate-100 rounded-2xl w-fit">
         {(['fees', 'salaries', 'expenses', 'balance'] as const).map(tab => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "px-6 py-2 rounded-xl text-sm font-bold transition-all",
-              activeTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              "px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
+              activeTab === tab ? "bg-white text-navy-950 shadow-sm" : "text-slate-500 hover:text-slate-900"
             )}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab}
           </button>
         ))}
       </div>
 
       {activeTab === 'fees' && (
-        <Card title="Student Fees" action={
-          <button onClick={() => setIsAdding(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition-all">
-            <Plus size={16} /> Record Fee
+        <Card title="Student Tuition & Fees" subtitle="Detailed Fee Collection History" action={
+          <button onClick={() => setIsAdding(true)} className="bg-navy-950 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-navy-900 transition-all shadow-lg shadow-navy-900/10 active:scale-95">
+            <Plus size={16} /> Record Transaction
           </button>
         }>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">
-                  <th className="pb-4">Student</th>
-                  <th className="pb-4">Month/Year</th>
-                  <th className="pb-4">Amount</th>
-                  <th className="pb-4">Status</th>
-                  <th className="pb-4 text-right">Date Paid</th>
-                  <th className="pb-4 text-right">Action</th>
+                <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                  <th className="pb-5">Student Reference</th>
+                  <th className="pb-5">Billing Period</th>
+                  <th className="pb-5">Transaction Amount</th>
+                  <th className="pb-5 text-center">Status</th>
+                  <th className="pb-5 text-right">Settlement Date</th>
+                  <th className="pb-5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredFees.map((fee: Fee) => (
-                  <tr key={fee.id} className="text-sm hover:bg-slate-50 transition-colors">
-                    <td className="py-4 font-medium text-slate-900">
-                      {students.find((s: any) => s.id === fee.studentId)?.name || 'Unknown'}
+                  <tr key={fee.id} className="text-sm hover:bg-slate-50/50 transition-colors group">
+                    <td className="py-5">
+                      <p className="font-black text-navy-950 leading-tight">
+                        {students.find((s: any) => s.id === fee.studentId)?.name || 'Unknown Registry'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">ID: {fee.studentId.slice(0, 8)}</p>
                     </td>
-                    <td className="py-4 text-slate-600">{fee.month} {fee.year}</td>
-                    <td className="py-4 font-bold text-slate-900">Rs. {fee.amount}</td>
-                    <td className="py-4">
+                    <td className="py-5 text-slate-600 font-medium">
+                      <span className="bg-slate-100 px-2 py-1 rounded-lg text-slate-700 text-xs">{fee.month} {fee.year}</span>
+                    </td>
+                    <td className="py-5 font-black text-navy-950">Rs. {fee.amount.toLocaleString()}</td>
+                    <td className="py-5 text-center">
                       <span className={cn(
-                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
-                        fee.status === 'paid' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                        "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                        fee.status === 'paid' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"
                       )}>
                         {fee.status}
                       </span>
                     </td>
-                    <td className="py-4 text-right text-slate-500">{fee.datePaid ? format(new Date(fee.datePaid), 'MMM dd, yyyy') : '-'}</td>
-                    <td className="py-4 text-right">
-                      <button 
-                        onClick={() => setViewingFeeSlip(fee)}
-                        className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold uppercase tracking-wider"
-                      >
-                        Fee Slip
-                      </button>
+                    <td className="py-5 text-right text-slate-500 font-mono text-xs">{fee.datePaid ? format(new Date(fee.datePaid), 'MMM dd, yyyy') : 'Pending'}</td>
+                    <td className="py-5 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => {
+                            const student = students.find((s: any) => s.id === fee.studentId);
+                            sendWhatsAppReceipt(fee, student);
+                          }}
+                          className="p-2 text-emerald-500 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+                          title="Quick WhatsApp"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        </button>
+                        <button 
+                          onClick={() => setViewingFeeSlip(fee)}
+                          className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold uppercase tracking-wider"
+                        >
+                          Fee Slip
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1726,6 +1831,7 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              ref={feeSlipRef}
               className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden relative print-area border border-slate-200"
             >
               {/* Header */}
@@ -1738,7 +1844,7 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
                 </button>
                 <img src="/logo.png" alt="Logo" className="w-28 h-28 mx-auto mb-4 object-contain"  />
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">QUAID-E-AZAM MODEL SCHOOL</h3>
-                <p className="text-slate-500 text-[10px] font-bold tracking-[0.3em] uppercase mt-1">Wazirabad ⋅ Dhonikey</p>
+                <p className="text-slate-500 text-[10px] font-bold tracking-[0.3em] uppercase mt-1">Dhonikey ⋅ Wazirabad</p>
                 <div className="w-16 h-1 bg-amber-400 mx-auto mt-4"></div>
               </div>
 
@@ -1786,8 +1892,6 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Cashier</p>
                     </div>
                     <div className="text-center flex flex-col items-center relative">
-                      <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-3 h-14 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
-                      <span className="font-signature text-blue-800 text-xl absolute bottom-3 hidden z-10">S. Q. Abbas</span>
                       <div className="w-24 border-t border-slate-400 pt-1 mt-10">
                         <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Principal</p>
                       </div>
@@ -1805,10 +1909,18 @@ function FinanceManager({ fees, salaries, expenses, students, teachers }: any) {
                       const student = students.find((s: any) => s.id === viewingFeeSlip?.studentId);
                       sendWhatsAppReceipt(viewingFeeSlip, student);
                     }}
-                    className="p-2 text-emerald-500 hover:text-emerald-700 transition-colors no-print"
+                    disabled={isCapturing}
+                    className={cn(
+                      "p-2 text-emerald-500 hover:text-emerald-700 transition-all no-print flex items-center justify-center",
+                      isCapturing ? "opacity-50 cursor-not-allowed scale-90" : "hover:scale-110 active:scale-95"
+                    )}
                     title="Send via WhatsApp"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    {isCapturing ? (
+                      <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    )}
                   </button>
                   <button 
                     onClick={handlePrint}
@@ -2758,8 +2870,6 @@ function ExamsManager({ exams, results, students }: any) {
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Class Teacher</p>
                     </div>
                     <div className="text-center flex flex-col items-center relative">
-                      <img src="/signature.png" alt="S. Q. Abbas" className="absolute bottom-4 h-16 object-contain mix-blend-multiply opacity-90 z-10 pointer-events-none" onError={(e) => { (e.currentTarget as any).style.display = 'none'; (e.currentTarget.nextElementSibling as any).style.display = 'block'; }} />
-                      <span className="font-signature text-blue-800 text-2xl absolute bottom-4 hidden z-10">S. Q. Abbas</span>
                       <div className="w-28 border-t border-slate-300 pt-1 mt-12">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Principal</p>
                       </div>
